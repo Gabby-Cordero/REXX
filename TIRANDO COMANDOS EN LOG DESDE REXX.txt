@@ -1,0 +1,152 @@
+
+TIRAR COMANDOS EN EL LOG DE MVS DESDE REXX
+EN NAG3
+
+SYS1.XGROUP.CLIST.VGP(COMANDO) en hercules ADCD.REXX.SDSF(COMANDO)
+
+/* REXX */                                
+ISFRC = ISFCALLS( "ON" )                  
+ADDRESS SDSF "ISFEXEC DA"                 
+ADDRESS SDSF "ISFEXEC /D T"               
+ADDRESS SDSF "ISFEXEC '/D TCPIP,,N,HOME'" 
+CALL ISFCALLS "OFF"                       
+EXIT                                      
+
+---------------------------------------------------
+
+ADCD.REXX.SDSF(COMDISP)
+
+/* REXX */                                           
+/* DISPLAYAR COMANDO QUE LO GUARDA EN ISFULOG */     
+SAY                                                  
+SAY                                                  
+SAY                                                  
+SAY                                                  
+SAY                                                  
+rc=isfcalls('ON')                                    
+ADDRESS SDSF "ISFSLASH 'D T' (WAIT)"                 
+SAY ISFULOG.0 "LINEAS CAPTURADAS"                    
+DO I=1 TO ISFULOG.0                                  
+ SAY "LINEA" I":" ISFULOG.I                          
+END                                                  
+rc=isfcalls('OFF')                                   
+EXIT                                                 
+
+-------------------------------------------------
+
+ADCD.REXX.SDSF(COMDISP2)
+
+/* REXX */                              
+SAY                                     
+SAY                                     
+SAY                                     
+SAY                                     
+SAY                                     
+RC=ISFCALLS('ON')                       
+CMD.0=3                                 
+CMD.1='D T'                             
+CMD.2='D NET,CPCP'                      
+CMD.3='D TCPIP,,N,HOME'                 
+ADDRESS SDSF "ISFSLASH (CMD.) (WAIT)"   
+SAY ISFULOG.0 "LINEAS CAPTURADAS"       
+DO I = 1 TO ISFULOG.0                   
+   SAY "LINEA" I ":" ISFULOG.I          
+END                                     
+RC = ISFCALLS('OFF')                    
+EXIT                                    
+
+---------------------------------------
+
+ADCD.REXX.SDSF(COMDISP3)
+
+/* REXX */                                                
+SAY                                                       
+SAY                                                       
+SAY                                                       
+SAY                                                       
+SAY                                                       
+RC = ISFCALLS('ON')                                       
+ADDRESS SDSF "ISFSLASH 'D NET,TRL','D NET,CDRMS','D R,R'" 
+/*  TODO LO GUARDA EN ISFULOG     */                      
+DO I = 1 TO ISFULOG.0                                     
+ SAY "LINEA" I ISFULOG.I                                  
+END                                                       
+RC = ISFCALLS('OFF')                                      
+EXIT                                                      
+
+
+---------------------------------------
+
+EN NAG3
+
+DESDE SDSF PONER COLSH 
+LO QUE APARECE BAJO COLUMN ES EL NOMBRE REAL EL OTRO TITLE ES EL QUE 
+VEMOS NOSOTROS
+
+ISFROWS ES UNA VARIABLE NO UNA STEM
+
+SYS1.XGROUP.CLIST.VGP(ISFROWS)
+
+
+/* REXX */                                                   
+SAY                                                          
+SAY                                                          
+SAY                                                          
+SAY                                                          
+SAY                                                          
+RC2 = ISFCALLS('ON')                                         
+ISFPREFIX = "P*"                                             
+ISFCOLS = "JNAME CPUPR SYSNAME OWNERID"                      
+ISFOWNER = "*"                                               
+ISFSYSNAME = "NAG3"                                          
+ISFSORT = "OWNERID A"                                        
+ADDRESS SDSF "ISFEXEC DA"                                    
+IF RC <> 0 THEN EXIT                                         
+SAY "FILAS ENCONTRADAS:" ISFROWS                             
+DO I = 1 TO ISFROWS                                          
+  SAY "NOMBRE DEL JOB" JNAME.I "PORCENTAJE CPU " CPUPR.I "." 
+END                                                          
+CALL ISFCALLS('OFF')       
+EXIT                       
+
+
+------------------------------------------
+
+EN NAG3
+
+SYS1.XGROUP.CLIST.VGP(SDSFROW)
+
+/* REXX */                              
+SAY                                     
+SAY                                     
+SAY                                     
+SAY                                     
+ISFRC = ISFCALLS('ON')                  
+ISFPREFIX = "P*"                        
+ISFCOLS = "JNAME CPUPR SYSNAME"         
+ISFOWNER = "*"                          
+ADDRESS SDSF "ISFEXEC DA (COMPACT)"     
+IF RC <> 0 THEN EXIT                    
+SAY "FILAS SON" SDSFROW.0               
+DO I = 1 TO SDSFROW.0                   
+  SAY "FILA" I SDSFROW.I                
+END                                     
+RC = ISFCALLS('OFF')                    
+EXIT                                    
+
+----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,128 @@
+
+
+REXX PARA QUE ME TERMINE ARMANDO UN JOB DE FTP BATCH DE LA ULTIMA VERSION DE UN GDG
+
+1- DELETA EL FILE NTWKAGC.PEPE.PEPE POR SI EXISTE
+2- HACE UN LISTADO DE CUAL ES LA ULTIMA VERSION DEL GDG BASE DVG.REPORT.NAG3.FILE6(0) Y LO
+DEJA EN NTWKAGC.PEPE.PEPE
+3- SUBMITE EL REXX PALABRA
+4- LE SACO EL NOPREFIX A LA PROFILE DE USUARIO
+5- LEE EL NTWKAGC.PEPE.PEPE BUSCANDO LA PALABRA LISTING
+6- UNA VEZ QUE LA ENCUENTRA TOMA LA PALABRA DE LA 5 POSICION Y LE SACA GUIONES Y LA COPIA DENTRO DE VARIABLE COVI
+7- TOMO EL FTPBATCH LLAMADO FTPLAMB Y LO LEO BUSCANDO LA PALABRA 'CATALINA' *mirar como esta armabdo FTPLAMB
+8- CUANDO ENCUENTRO LA PALABRA CATALINA LA CAMBIO POR COVI QUE TIENE EL DVG....
+9- CON EL ELSE APROVECHO PARA COPIAR TODO LO DEMAS QUE ESO NO CAMBIA
+10- POR ULTIMO TODO ESO LO ESCRIBO EN UN NUEVO MEMBER QUE CREO LLAMADO FTPLAMC DONDE ESTARA EL GDG A TRANSFERIR
+
+EN NAG3:
+
+SYS1.XGROUP.CLIST.VGP(GDGVER)
+
+//STEP9   EXEC PGM=IEFBR14                              
+//SYSPRINT DD SYSOUT=*                                  
+//DDELE    DD DSN=NTWKAGC.PEPE.PEPE,                    
+//       DISP=(OLD,DELETE,DELETE)                       
+//STEP10  EXEC PGM=IDCAMS                               
+//DD1       DD DSN='DVG.REPORT.NAG3.FILE6(0)',DISP=SHR  
+//SYSPRINT  DD DSN=NTWKAGC.PEPE.PEPE,                   
+//             DISP=(NEW,CATLG,DELETE),                 
+//             UNIT=WORK,AVGREC=K,                      
+//             SPACE=(108,(5,5),RLSE),                  
+//             DCB=(BUFNO=10,RECFM=FB,LRECL=108)        
+//SYSIN     DD *                                        
+ PRINT INFILE(DD1) COUNT(0) CHAR                        
+// IF (STEP10.RC <= 4) THEN                             
+//STEP11   EXEC PGM=IKJEFT01                            
+//SYSPROC  DD DISP=SHR,DSN=SYS1.XGROUP.CLIST.VGP        
+//SYSTSPRT DD SYSOUT=*               
+//SYSPRINT DD SYSOUT=*               
+//SYSTSIN  DD *                      
+%PALABRA                             
+// ENDIF                             
+
+
+SYS1.XGROUP.CLIST.VGP(PALABRA)
+
+/* REXX */                                      
+SAY                                             
+SAY                                             
+SAY                                             
+SAY                                             
+SAY                                             
+X = OUTTRAP("LINE.")                            
+"PROFILE NOPREFIX"                              
+X = OUTTRAP(OFF)                                
+ENTRADA = NTWKAGC.PEPE.PEPE                     
+CONTADOR = 0                                    
+"ALLOC F(INDD) DA("ENTRADA") SHR REUSE"         
+"EXECIO * DISKR INDD (FINIS STEM REG."          
+"FREE F(INDD)"                                  
+DO I = 1 TO REG.0                               
+  IF POS("LISTING",REG.I) > 0  THEN DO          
+  COVI = STRIP(SUBWORD(REG.I,5,1),"B","-")      
+  SAY COVI                                      
+  END                                           
+END                                             
+ALBATCH = "TCPIP.SUPPORT(FTPLAMB)"              
+ALBATC2 = "TCPIP.SUPPORT(FTPLAMC)"              
+FILE = "'CATALINA'"                             
+"ALLOC F(INDD) DA("ALBATCH") SHR REUSE"         
+"EXECIO * DISKR INDD (FINIS STEM REG."          
+"FREE F(INDD)"                                  
+DO I = 1 TO REG.0                               
+  IF POS(FILE,REG.I) > 0 THEN DO                
+   FILE = COVI                                  
+   REG.I = "   put '"FILE"'"                    
+   CONTADOR = CONTADOR + 1                      
+   FICH1.CONTADOR = REG.I                       
+   SAY FICH1.CONTADOR                           
+  END                                        
+  ELSE DO                                    
+  CONTADOR = CONTADOR + 1                    
+  FICH1.CONTADOR = REG.I                     
+  SAY FICH1.CONTADOR                         
+  END                                        
+END                                          
+"ALLOC F(GABVAR) DA("ALBATC2") MOD REUSE"    
+"EXECIO * DISKW GABVAR (FINIS STEM FICH1."   
+"FREE F(GABVAR)"                             
+/*DRESS TSO*/                                
+/*UBMIT 'TCPIP.SUPPORT(FTPLAMC)'"*/          
+EXIT                                         
+
+
+TCPIP.SUPPORT(FTPLAMB)
+
+
+//****************** substitute your jobcard ******************** 
+//*CPHA JOB 'D6077P,B9200047','CPH',MSGCLASS=H,MSGLEVEL=(1,1),    
+//* NOTIFY=CPH,CLASS=1,REGION=0M                                  
+//****************************************************************
+//STEP1    EXEC PGM=FTP,PARM='9.63.66.15 (EXIT TRACE'             
+//SYSPRINT DD   SYSOUT=*                                          
+//INPUT    DD   *                                                 
+   ntwkagc                                                        
+   apr22apr                                                       
+   put 'CATALINA'                                                 
+   quit                                                           
+/*                                                                
+
+
+                              
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+                 
+

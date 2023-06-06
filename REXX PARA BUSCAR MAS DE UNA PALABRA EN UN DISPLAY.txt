@@ -1,0 +1,49 @@
+
+LO DE LA PROCLIB ESTA AL PEDO PORQUE HAGO UN LISTDS A ESE FILE PERO ES INNECESARIO
+
+EL DISPLAY DEL NETSTAT DEV LO GUARDO EN ADCD.Z111.SALIDA.COMANDO Y LUEGO 
+LEO ESE ARCHIVO Y GUARDO EN UN NUEVO ARCHIVO LLAMADO ADCD.Z111.SALIDA.COMANDO.UPDATE 
+LA LINEA QUE TENGA LAS PALABRAS LNKNAME Y INBOUND PACKETS
+
+
+
+
+ADCD.REXX(OUTTRAP)
+
+
+/* REXX */                                     
+FILE = "ADCD.Z111.PROCLIB"                     
+FILE2 = "ADCD.Z111.SALIDA.COMANDO"             
+FILE3 = "ADCD.Z111.SALIDA.COMANDO.UPDATE"      
+X = OUTTRAP("LINE.")                           
+"NETSTAT DEV"                                  
+"LISTDS" FILE                                  
+X = OUTTRAP(OFF)                               
+CONTADOR = 0                                   
+DO I=1 TO LINE.0                               
+  SAY LINE.I                                   
+  CONTADOR = CONTADOR + 1                      
+  COMANDO.CONTADOR = LINE.I                    
+END                                            
+"ALLOC F(GABVAR) DA("FILE2") SHR REUSE"        
+"EXECIO * DISKW GABVAR (FINIS STEM COMANDO."   
+"FREE F(GABVAR)"                               
+"ALLOC F(INDD) DA("FILE2") SHR REUSE"          
+"EXECIO * DISKR INDD (FINIS STEM REG."         
+"FREE F(INDD)"                                 
+CONTADOR = 0                                   
+DO I = 1 TO REG.0                              
+  IF POS("LnkName",REG.I) > 0 THEN DO          
+  CONTADOR = CONTADOR + 1                      
+  OUT.CONTADOR = REG.I                         
+  END                                          
+  IF POS("Inbound Packets",REG.I) > 0 THEN DO  
+  CONTADOR = CONTADOR + 1                      
+  OUT.CONTADOR = REG.I                         
+  END                                          
+END                                            
+"ALLOC F(OUTDD) DA("FILE3") SHR REUSE"         
+"EXECIO * DISKW OUTDD (FINIS STEM OUT."        
+"FREE F(OUTDD)"                                
+EXIT                                           
+

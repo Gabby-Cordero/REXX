@@ -1,0 +1,22 @@
+
+//GCORD21C JOB (HMCCO00),HMCCO00,CLASS=R,MSGCLASS=T, 
+// NOTIFY=&SYSUID,MSGLEVEL=(1,1)                     
+//*                                                  
+//TSO    EXEC PGM=IKJEFT01,DYNAMNBR=20,REGION=0M     
+//SYSEXEC  DD DISP=SHR,DSN=GCORD21.LIBRERIA          
+/* NDD     DD DISP=SHR,DSN=MST.Z1KR.IPLIST           
+//SYSTSPRT DD SYSOUT=*                               
+//SYSTSIN  DD *                                      
+MATA992                                                 
+/*                                                   
+
+
+member MATA992 en GCORD21.LIBRERIA 
+/* REXX */                                
+ISFRC = ISFCALLS( "ON" )                  
+ISFDELAY = "10"                           
+ADDRESS SDSF "ISFEXEC '/V TCPIP,TELNET,STOP,PORT=992'" 
+ADDRESS SDSF "ISFEXEC '/V TCPIP,TELNET,O,DSN=TCPIP.PARMS(TELNSM)'" 
+CALL ISFCALLS "OFF"                       
+EXIT                                      
+

@@ -1,0 +1,24 @@
+
+
+EL PROBLEMA ES QUE EL JOB NO CORRE SI VOS TE CAES O DAS LOGOFF
+
+EJEMPLO: YO LO QUISE HACER TIRANDO UN STOP DEL PORT 992 Y LUEGO DANDO OBEY
+Y SOLO HIZO EL STOP
+
+POR ESO ES NECESARIO CORRERLO CON UN JOB QUE APUNTE AL REXX
+
+TIRA EL COMANDO D T Y ESPERA 10 SEGUNDOS PARA TIRAR EL HOME
+
+/* REXX */                                                         
+ISFRC = ISFCALLS( "ON" )                                           
+ISFDELAY = "10"                                                    
+ADDRESS SDSF "ISFEXEC '/D T'"                                      
+ADDRESS SDSF "ISFEXEC '/D TCPIP,,N,HOME'"                          
+/* RESS SDSF "ISFEXEC '/V TCPIP,TELNET,O,DSN=TCPIP.PARMS(TELNSM)'" 
+*/                                                                 
+CALL ISFCALLS "OFF"                                                
+EXIT
+
+
+
+                                                             

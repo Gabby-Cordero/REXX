@@ -1,0 +1,347 @@
+
+LA IDEA ES CON EL COMANDO TSO MATAR USER GRUPO 
+ME ELIMINE EL USUARIO DE UN GRUPO EJEMPLO GCORDE DE LOGISTIC
+
+* EL PROBLAME ES QUE GENERA EL JOB PARA EL NVASIES DEL GRUPO LOGISTIC
+TENDRIA QUE VER LA MANERA DE QUE GENERE JOB DEPENDIENDO EL GRUPO
+O SEA QUE RELACION GRUPO CON NVAS, EJEMPLO SI EL GRUPO ES LOGISTIC EL JOB EL QUE CONTIENE NVASIESC
+
+QUIZAS TENER EN UN DATASET UN REPORTE DE GRUPOS POR NVAS Y AHI CHEQUEAR
+
+ESTO NO DEBERIA FUNCIONAR CUANDO EL GRUPO ES SUPPORT YA QUE ESE GRUPO ES DEFAULT EN LOS 3 NVAS
+Y TAMPOCO POR AHORA PARA GRUPO MTA DE NVASSSL
+
+GCORDE.LIST.GROUP.NVASIES  
+GCORDE.LIST.GROUP.NVASSN   
+GCORDE.LIST.GROUP.NVASSSL  
+
+OTRA POSIBILIDAD ES QUE EN EL ULTIMO JOB "MATARE" HAYA UNA CONDICION QUE DIGA QUE SI TERMINA CON RC 12
+EJECUTE EL SIGUIENTE PASO DONDE HARA LO MISMO PERO PARA EL OTRO NVAS
+
+* POR AHORA LA QUE SE ME OCURRE ES QUE EJECUTE 2 JOBS EL PROGRAMA, 1 PARA NVASIES Y OTRO PARA NVASSN
+UNO DARA 12 Y OTRO 0 DE RC 
+
+*MIRAR QUE LA VARIABLE CATALINA Y CORDERO LA VUELVO A PONER EN EL BUCLE DEL DO PARA QUE BUSQUE UNA SEGUNDA VEZ
+SINO SOLO ME CAMBIA LA VARIABLE FILE UNA VEZ
+
+
+SYSUSER.TSO.COMMON.CLIST(MATAR)
+
+/* REXX */                                           
+PARSE ARG NOMBRE GRUPO                               
+SAY NOMBRE                                           
+SAY GRUPO                                            
+X = OUTTRAP("LINE.")                                 
+"PROFILE NOPREFIX"                                   
+X = OUTTRAP(OFF)                                     
+ALBATCH = "SYSUSER.TSO.COMMON.CLIST(DELGA)"          
+ALBATC2 = "SYSUSER.TSO.COMMON.CLIST(DELGABA)"        
+FILE = "CATALINA"                                    
+CONTADOR = 0                                         
+"ALLOC F(INDD) DA("ALBATCH") SHR REUSE"              
+"EXECIO * DISKR INDD (FINIS STEM REG."               
+"FREE F(INDD)"                                       
+DO I = 1 TO REG.0                                    
+   IF POS(FILE,REG.I) > 0 THEN DO                    
+   FILE = NOMBRE                                     
+   REG.I = "      USER_ID="FILE","                   
+   CONTADOR = CONTADOR + 1                           
+   FICH1.CONTADOR = REG.I                         
+   SAY FICH1.CONTADOR                             
+   FILE = "CATALINA"                              
+  END                                             
+  ELSE DO                                         
+  CONTADOR = CONTADOR + 1                         
+  FICH1.CONTADOR = REG.I                          
+  SAY FICH1.CONTADOR                              
+  END                                             
+END                                               
+"ALLOC F(GABVAR) DA("ALBATC2") OLD REUSE"         
+"EXECIO * DISKW GABVAR (FINIS STEM FICH1."        
+"FREE F(GABVAR)"                                  
+ALBATC2 = "SYSUSER.TSO.COMMON.CLIST(DELGABA)"     
+ALBATC3 = "NET.NVAS.JCL(MATARE)"                  
+FILE = "CORDERO"                                  
+CONTADOR = 0                                      
+"ALLOC F(INDD) DA("ALBATC2") SHR REUSE"           
+"EXECIO * DISKR INDD (FINIS STEM REG."            
+"FREE F(INDD)"                                    
+DO I = 1 TO REG.0                                 
+   IF POS(FILE,REG.I) > 0 THEN DO                 
+   FILE = GRUPO                                   
+   REG.I = "      GROUP_NAME="FILE","             
+   CONTADOR = CONTADOR + 1                        
+   FICH1.CONTADOR = REG.I                         
+   SAY FICH1.CONTADOR                             
+   FILE = "CORDERO"                               
+  END                                             
+  ELSE DO                                         
+  CONTADOR = CONTADOR + 1                         
+  FICH1.CONTADOR = REG.I                          
+  SAY FICH1.CONTADOR                              
+  END                                             
+END                                               
+"ALLOC F(GABVAR) DA("ALBATC3") OLD REUSE"         
+"EXECIO * DISKW GABVAR (FINIS STEM FICH1."        
+"FREE F(GABVAR)"                                  
+ADDRESS TSO "SUBMIT '"NET.NVAS.JCL"("MATARE")'"   
+EXIT                                              
+
+
+********************************************************
+
+SYSUSER.TSO.COMMON.CLIST(DELGA)
+
+
+//JOBDELE1 JOB (1013TELL),'DELULENO',NOTIFY=&SYSUID,REGION=0M,          
+//        MSGLEVEL=(1,1),MSGCLASS=H                                     
+//*                                                                     
+/*JOBPARM S=ANY                                                         
+//*******************************************************************// 
+//BATCHLO  EXEC PGM=EMSBXPMC,REGION=0M,                                 
+//         PARM='EXEC,UID=PUBUSER,UNLOCK'                               
+//*-------------------------------------------------------------------+ 
+//* NVAS load module library...:                                      ¦ 
+//*-------------------------------------------------------------------+ 
+//STEPLIB   DD DSN=SYS1.NVAS.LINKLIB,DISP=SHR                           
+//*-------------------------------------------------------------------+ 
+//* NVAS VSAM clusters...:                                            ¦ 
+//*-------------------------------------------------------------------+ 
+//EMSBSRTS  DD DSN=NET.NVASIESC.PRODATA.EMSSRTS,DISP=SHR                
+//EMSBSRTG  DD DSN=NET.NVASIESC.PRODATA.EMSSRTG,DISP=SHR                
+//EMSBSRTU  DD DSN=NET.NVASIESC.PRODATA.EMSSRTU,DISP=SHR                
+//EMSBPLDT  DD DSN=NET.NVASIESC.PRODATA.EMSPLDT,DISP=SHR                
+//EMSBGPRF  DD DSN=NET.NVASIESC.PRODATA.EMSGPRF,DISP=SHR                
+//EMSBALLT  DD DSN=NET.NVASIESC.PRODATA.EMSALLT,DISP=SHR                
+//EMSBGAL   DD DSN=NET.NVASIESC.PRODATA.EMSGAL,DISP=SHR                 
+//*-------------------------------------------------------------------+ 
+//* PRINT output data sets...:                                        ¦ 
+//*-------------------------------------------------------------------+ 
+//SYSPRINT  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//EMSBREPO  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//EMSBLIST  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//SYSUDUMP  DD SYSOUT=*                                                 
+//*-------------------------------------------------------------------+ 
+//* Sample Command Input for NVAS Batch Load program...:              ¦ 
+//*-------------------------------------------------------------------+ 
+//EMSBCOMM  DD *                                                        
+*                                                                       
+ DELETE   USER,                                                         
+      USER_ID=CATALINA,                                                 
+      GROUP_NAME=CORDERO,                                               
+      APPLICATION=*                                                     
+*                                                                       
+//JOBDELE2 JOB (1013TELL),'DELULENO',NOTIFY=&SYSUID,REGION=0M,          
+//        MSGLEVEL=(1,1),MSGCLASS=H                                      
+//*                                                                      
+/*JOBPARM S=ANY                                                          
+//BATCHLP  EXEC PGM=EMSBXPMC,REGION=0M,                                  
+//         PARM='EXEC,UID=PUBUSER,UNLOCK'                                
+//*-------------------------------------------------------------------+  
+//* NVAS load module library...:                                      ¦  
+//*-------------------------------------------------------------------+  
+//STEPLIB   DD DSN=SYS1.NVAS.LINKLIB,DISP=SHR                            
+//*-------------------------------------------------------------------+  
+//* NVAS VSAM clusters...:                                            ¦  
+//*-------------------------------------------------------------------+  
+//EMSBSRTS  DD DSN=NET.NVASSN.EMSSRTS,DISP=SHR                           
+//EMSBSRTG  DD DSN=NET.NVASSN.EMSSRTG,DISP=SHR                           
+//EMSBSRTU  DD DSN=NET.NVASSN.EMSSRTU,DISP=SHR                           
+//EMSBPLDT  DD DSN=NET.NVASSN.EMSPLDT,DISP=SHR                           
+//EMSBGPRF  DD DSN=NET.NVASSN.EMSGPRF,DISP=SHR                           
+//EMSBALLT  DD DSN=NET.NVASSN.EMSALLT,DISP=SHR                           
+//EMSBGAL   DD DSN=NET.NVASSN.EMSGAL,DISP=SHR                            
+//*-------------------------------------------------------------------+  
+//* PRINT output data sets...:                                        ¦ 
+//*-------------------------------------------------------------------+ 
+//SYSPRINT  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//EMSBREPO  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//EMSBLIST  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//SYSUDUMP  DD SYSOUT=*                                                 
+//*-------------------------------------------------------------------+ 
+//* Sample Command Input for NVAS Batch Load program...:              ¦ 
+//*-------------------------------------------------------------------+ 
+//EMSBCOMM  DD *                                                        
+*                                                                       
+ DELETE   USER,                                                         
+      USER_ID=CATALINA,                                                 
+      GROUP_NAME=CORDERO,                                               
+      APPLICATION=*                                                     
+*                                                                       
+
+
+
+****************************************************************
+
+SYSUSER.TSO.COMMON.CLIST(DELGABA)
+
+//JOBDELE1 JOB (1013TELL),'DELULENO',NOTIFY=&SYSUID,REGION=0M,           
+//        MSGLEVEL=(1,1),MSGCLASS=H                                      
+//*                                                                      
+/*JOBPARM S=ANY                                                          
+//*******************************************************************//  
+//BATCHLO  EXEC PGM=EMSBXPMC,REGION=0M,                                  
+//         PARM='EXEC,UID=PUBUSER,UNLOCK'                                
+//*-------------------------------------------------------------------+  
+//* NVAS load module library...:                                      ¦  
+//*-------------------------------------------------------------------+  
+//STEPLIB   DD DSN=SYS1.NVAS.LINKLIB,DISP=SHR                            
+//*-------------------------------------------------------------------+  
+//* NVAS VSAM clusters...:                                            ¦  
+//*-------------------------------------------------------------------+  
+//EMSBSRTS  DD DSN=NET.NVASIESC.PRODATA.EMSSRTS,DISP=SHR                 
+//EMSBSRTG  DD DSN=NET.NVASIESC.PRODATA.EMSSRTG,DISP=SHR                 
+//EMSBSRTU  DD DSN=NET.NVASIESC.PRODATA.EMSSRTU,DISP=SHR                 
+//EMSBPLDT  DD DSN=NET.NVASIESC.PRODATA.EMSPLDT,DISP=SHR                 
+//EMSBGPRF  DD DSN=NET.NVASIESC.PRODATA.EMSGPRF,DISP=SHR                 
+//EMSBALLT  DD DSN=NET.NVASIESC.PRODATA.EMSALLT,DISP=SHR                
+//EMSBGAL   DD DSN=NET.NVASIESC.PRODATA.EMSGAL,DISP=SHR                 
+//*-------------------------------------------------------------------+ 
+//* PRINT output data sets...:                                        ¦ 
+//*-------------------------------------------------------------------+ 
+//SYSPRINT  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//EMSBREPO  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//EMSBLIST  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                       
+//SYSUDUMP  DD SYSOUT=*                                                 
+//*-------------------------------------------------------------------+ 
+//* Sample Command Input for NVAS Batch Load program...:              ¦ 
+//*-------------------------------------------------------------------+ 
+//EMSBCOMM  DD *                                                        
+*                                                                       
+ DELETE   USER,                                                         
+      USER_ID=GCORDE,                                                   
+      GROUP_NAME=CORDERO,                                               
+      APPLICATION=*                                                     
+*                                                                       
+//JOBDELE2 JOB (1013TELL),'DELULENO',NOTIFY=&SYSUID,REGION=0M,          
+//        MSGLEVEL=(1,1),MSGCLASS=H                                         
+//*                                                                         
+/*JOBPARM S=ANY                                                             
+//BATCHLP  EXEC PGM=EMSBXPMC,REGION=0M,                                     
+//         PARM='EXEC,UID=PUBUSER,UNLOCK'                                   
+//*-------------------------------------------------------------------+     
+//* NVAS load module library...:                                      ¦     
+//*-------------------------------------------------------------------+     
+//STEPLIB   DD DSN=SYS1.NVAS.LINKLIB,DISP=SHR                               
+//*-------------------------------------------------------------------+     
+//* NVAS VSAM clusters...:                                            ¦     
+//*-------------------------------------------------------------------+     
+//EMSBSRTS  DD DSN=NET.NVASSN.EMSSRTS,DISP=SHR                              
+//EMSBSRTG  DD DSN=NET.NVASSN.EMSSRTG,DISP=SHR                              
+//EMSBSRTU  DD DSN=NET.NVASSN.EMSSRTU,DISP=SHR                              
+//EMSBPLDT  DD DSN=NET.NVASSN.EMSPLDT,DISP=SHR                              
+//EMSBGPRF  DD DSN=NET.NVASSN.EMSGPRF,DISP=SHR                              
+//EMSBALLT  DD DSN=NET.NVASSN.EMSALLT,DISP=SHR                              
+//EMSBGAL   DD DSN=NET.NVASSN.EMSGAL,DISP=SHR                               
+//*-------------------------------------------------------------------+     
+//* PRINT output data sets...:                                        ¦
+//*-------------------------------------------------------------------+
+//SYSPRINT  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                      
+//EMSBREPO  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                      
+//EMSBLIST  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                      
+//SYSUDUMP  DD SYSOUT=*                                                
+//*-------------------------------------------------------------------+
+//* Sample Command Input for NVAS Batch Load program...:              ¦
+//*-------------------------------------------------------------------+
+//EMSBCOMM  DD *                                                       
+*                                                                      
+ DELETE   USER,                                                        
+      USER_ID=GCORDE,                                                  
+      GROUP_NAME=CORDERO,                                              
+      APPLICATION=*                                                    
+*                                                                      
+
+
+
+*************************************************************************
+
+
+NET.NVAS.JCL(MATARE)
+
+//JOBDELE1 JOB (1013TELL),'DELULENO',NOTIFY=&SYSUID,REGION=0M,          
+//        MSGLEVEL=(1,1),MSGCLASS=H                                     
+//*                                                                     
+/*JOBPARM S=ANY                                                         
+//*******************************************************************// 
+//BATCHLO  EXEC PGM=EMSBXPMC,REGION=0M,                                 
+//         PARM='EXEC,UID=PUBUSER,UNLOCK'                               
+//*-------------------------------------------------------------------+ 
+//* NVAS load module library...:                                      ¦ 
+//*-------------------------------------------------------------------+ 
+//STEPLIB   DD DSN=SYS1.NVAS.LINKLIB,DISP=SHR                           
+//*-------------------------------------------------------------------+ 
+//* NVAS VSAM clusters...:                                            ¦ 
+//*-------------------------------------------------------------------+ 
+//EMSBSRTS  DD DSN=NET.NVASIESC.PRODATA.EMSSRTS,DISP=SHR                
+//EMSBSRTG  DD DSN=NET.NVASIESC.PRODATA.EMSSRTG,DISP=SHR                
+//EMSBSRTU  DD DSN=NET.NVASIESC.PRODATA.EMSSRTU,DISP=SHR                
+//EMSBPLDT  DD DSN=NET.NVASIESC.PRODATA.EMSPLDT,DISP=SHR                
+//EMSBGPRF  DD DSN=NET.NVASIESC.PRODATA.EMSGPRF,DISP=SHR                
+//EMSBALLT  DD DSN=NET.NVASIESC.PRODATA.EMSALLT,DISP=SHR                  
+//EMSBGAL   DD DSN=NET.NVASIESC.PRODATA.EMSGAL,DISP=SHR                   
+//*-------------------------------------------------------------------+   
+//* PRINT output data sets...:                                        ¦   
+//*-------------------------------------------------------------------+   
+//SYSPRINT  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                         
+//EMSBREPO  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                         
+//EMSBLIST  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                         
+//SYSUDUMP  DD SYSOUT=*                                                   
+//*-------------------------------------------------------------------+   
+//* Sample Command Input for NVAS Batch Load program...:              ¦   
+//*-------------------------------------------------------------------+   
+//EMSBCOMM  DD *                                                          
+*                                                                         
+ DELETE   USER,                                                           
+      USER_ID=GCORDE,                                                     
+      GROUP_NAME=LOGISTIC,                                                
+      APPLICATION=*                                                       
+*                                                                         
+//JOBDELE2 JOB (1013TELL),'DELULENO',NOTIFY=&SYSUID,REGION=0M,            
+//        MSGLEVEL=(1,1),MSGCLASS=H                                       
+//*                                                                       
+/*JOBPARM S=ANY                                                           
+//BATCHLP  EXEC PGM=EMSBXPMC,REGION=0M,                                   
+//         PARM='EXEC,UID=PUBUSER,UNLOCK'                                 
+//*-------------------------------------------------------------------+   
+//* NVAS load module library...:                                      ¦   
+//*-------------------------------------------------------------------+   
+//STEPLIB   DD DSN=SYS1.NVAS.LINKLIB,DISP=SHR                             
+//*-------------------------------------------------------------------+   
+//* NVAS VSAM clusters...:                                            ¦   
+//*-------------------------------------------------------------------+   
+//EMSBSRTS  DD DSN=NET.NVASSN.EMSSRTS,DISP=SHR                            
+//EMSBSRTG  DD DSN=NET.NVASSN.EMSSRTG,DISP=SHR                            
+//EMSBSRTU  DD DSN=NET.NVASSN.EMSSRTU,DISP=SHR                            
+//EMSBPLDT  DD DSN=NET.NVASSN.EMSPLDT,DISP=SHR                            
+//EMSBGPRF  DD DSN=NET.NVASSN.EMSGPRF,DISP=SHR                            
+//EMSBALLT  DD DSN=NET.NVASSN.EMSALLT,DISP=SHR                            
+//EMSBGAL   DD DSN=NET.NVASSN.EMSGAL,DISP=SHR                             
+//*-------------------------------------------------------------------+   
+//* PRINT output data sets...:                                        ¦  
+//*-------------------------------------------------------------------+  
+//SYSPRINT  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                        
+//EMSBREPO  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                        
+//EMSBLIST  DD SYSOUT=*,DCB=(LRECL=133,RECFM=FBA)                        
+//SYSUDUMP  DD SYSOUT=*                                                  
+//*-------------------------------------------------------------------+  
+//* Sample Command Input for NVAS Batch Load program...:              ¦  
+//*-------------------------------------------------------------------+  
+//EMSBCOMM  DD *                                                         
+*                                                                        
+ DELETE   USER,                                                          
+      USER_ID=GCORDE,                                                    
+      GROUP_NAME=LOGISTIC,                                               
+      APPLICATION=*                                                      
+*                                                                        
+
+
+
+
+
+
+
+
+
+
+
+
