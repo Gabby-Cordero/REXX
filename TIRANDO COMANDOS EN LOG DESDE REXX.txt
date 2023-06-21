@@ -1,3 +1,37 @@
+TIRO UN COMANDO ESPERO 10 SEGUNDOS PARA DARLE TIEMPO YA QUE ES UN RESULTADO DE MUCHAS LINEAS, Y BUSCO ..33 COINCIDENCIAS Y GUARDO ESA LINEA Y LAS 2 ANTERIORES
+
+/* REXX */                                           
+FILE2 = "O791109.SALIDA.COMANDO"                     
+"PROFILE NOPREFIX"                                   
+RC = ISFCALLS('ON')                                  
+ISFDELAY = "10"                                      
+ADDRESS SDSF "ISFSLASH 'D TCPIP,,N,CONN,MAX=*'"      
+/*  TODO LO GUARDA EN ISFULOG     */                 
+CONTADOR = 0                                         
+DO I = 1 TO ISFULOG.0                                
+  IF POS("..33",ISFULOG.I) > 0 THEN DO               
+  CONTADOR = CONTADOR + 1                            
+  COMANDO.CONTADOR = ISFULOG.I                       
+  CONTADOR = CONTADOR + 1                            
+  I = I -1                                           
+  COMANDO.CONTADOR = ISFULOG.I                       
+  CONTADOR = CONTADOR + 1                            
+  I = I -1                                           
+  COMANDO.CONTADOR = ISFULOG.I                       
+  I = I + 2                                     
+  END                                           
+END                                             
+RC = ISFCALLS('OFF')                            
+"ALLOC F(GABVAR) DA("FILE2") SHR REUSE"         
+"EXECIO * DISKW GABVAR (FINIS STEM COMANDO."    
+"FREE F(GABVAR)"                                
+EXIT                                            
+
+
+
+
+
+
 
 TIRAR COMANDOS EN EL LOG DE MVS DESDE REXX
 EN NAG3
