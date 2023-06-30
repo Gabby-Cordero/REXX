@@ -1,0 +1,49 @@
+/* REXX */                                 
+X = OUTTRAP("LINE.")                       
+"PROFILE NOPREFIX"                         
+X = OUTTRAP(OFF)                           
+ENTRADA = "ADCD.JCL.JOBS(DATA)"            
+CONTADOR = 0                               
+"ALLOC F(INDD) DA("ENTRADA") SHR REUSE"    
+"EXECIO * DISKR INDD (FINIS STEM REG."     
+"FREE F(INDD)"                             
+DO I = 1 TO REG.0                          
+ IF POS("NODE=",REG.I) > 0 THEN DO         
+ NODE = TRANSLATE(REG.I," ","=")           
+ NODE = SUBWORD(NODE,2)                    
+ END                                       
+ IF POS("SSID=",REG.I) > 0 THEN DO         
+ SSID = TRANSLATE(REG.I," ","=")           
+ SSID = SUBWORD(SSID,2)                    
+ END                                       
+END                                         
+ORGIN = "ADCD.JCL.JOBS(NDMMAPA1)"           
+DEST = "ADCD.JCL.JOBS(NDMMAPA2)"            
+LPAR = "1111"                               
+NODES = "22222222"                          
+"ALLOC F(INDD) DA("ORGIN") SHR REUSE"       
+"EXECIO * DISKR INDD (FINIS STEM REG."      
+"FREE F(INDD)"                              
+DO I = 1 TO REG.0                           
+  IF POS(LPAR,REG.I) > 0 THEN DO            
+  LPAR = SSID                               
+  REG.I = "//*+JBS BIND LPAR."SSID""        
+  CONTADOR = CONTADOR + 1                   
+  READ1.CONTADOR = REG.I                    
+  SAY READ1.CONTADOR                        
+  I = I + 1                                 
+  REG.I = "/*JOBPARM S="SSID""              
+  CONTADOR = CONTADOR + 1                   
+  READ1.CONTADOR = REG.I                    
+  SAY READ1.CONTADOR                        
+  END                                       
+  ELSE DO                                   
+  CONTADOR = CONTADOR + 1                   
+  READ1.CONTADOR = REG.I                    
+  SAY READ1.CONTADOR                        
+  END                                       
+END                                         
+"ALLOC F(GABVAR) DA("DEST") MOD REUSE"      
+"EXECIO * DISKW GABVAR (FINIS STEM READ1."  
+"FREE F(GABVAR)"                            
+EXIT                                        
