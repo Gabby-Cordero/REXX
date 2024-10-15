@@ -1,0 +1,26 @@
+/* REXX */                                        
+X = OUTTRAP("LINE.")                              
+"PROFILE NOPREFIX"                                
+X = OUTTRAP(OFF)                                  
+FILE = "O791109.DOWN.WLM.CP"                      
+FILEOUT = "O791109.NEW"                           
+"ALLOC F(INDD) DA("FILE") SHR REUSE"              
+"EXECIO * DISKR INDD (FINIS STEM REG."            
+"FREE F(INDD)"                                    
+copylines = 0                                     
+outindex = 0                                      
+DO I = 1 TO REG.0                                 
+   IF POS("13 OCT 2024 ----",REG.I) > 0 THEN DO   
+        SAY "FOUND STARTING POINT"                
+        copyLines = 1                             
+   END                                            
+   IF copyLines = 1 THEN DO                       
+       outindex = outindex + 1                    
+       OUT.outindex = REG.I                       
+   END                                     
+END                                        
+"ALLOC F(OUTDD) DA("FILEOUT") SHR REUSE"   
+"EXECIO * DISKW OUTDD (FINIS STEM OUT."    
+"FREE F(OUTDD)"                            
+EXIT                                       
+
